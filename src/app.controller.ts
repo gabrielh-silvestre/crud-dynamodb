@@ -5,9 +5,11 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  UsePipes,
 } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ProductCreateDto } from './entity/Product';
+import { ProductCreateDto, ZProductCreateDto } from './entity/Product';
+import { ZodValidationPipe } from './shared/pipes/ZodValidation.pipe';
 
 @Controller('product')
 export class AppController {
@@ -20,6 +22,7 @@ export class AppController {
 
   @Post('create')
   @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ZodValidationPipe(ZProductCreateDto))
   async createProduct(@Body() dto: ProductCreateDto) {
     return await this.appService.createProduct(dto);
   }

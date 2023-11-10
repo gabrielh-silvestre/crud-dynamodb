@@ -1,20 +1,24 @@
-export type IProduct = {
-  id: string;
+import { z } from 'zod';
 
-  name: string;
-  description: string;
-  image: string;
-  price: number;
-  availableQuantity: number;
+export const ZProduct = z.object({
+  id: z.string().ulid(),
 
-  createdAt: string;
-  updatedAt: string;
-};
+  name: z.string(),
+  description: z.string(),
+  image: z.string().optional().nullable(),
+  price: z.number().positive(),
+  availableQuantity: z.number().positive(),
 
-export type ProductCreateDto = {
-  name: string;
-  description: string;
-  image?: string;
-  availableQuantity: number;
-  price: number;
-};
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type IProduct = z.infer<typeof ZProduct>;
+
+export const ZProductCreateDto = ZProduct.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).required();
+
+export type ProductCreateDto = z.infer<typeof ZProductCreateDto>;
