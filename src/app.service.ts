@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import type { ProductCreateDto } from './entity/Product';
+
 import { DynamoDbService } from './shared/aws/dynamo/Dynamo.service';
 import { SchemaV1 } from './shared/aws/dynamo/schema';
 
@@ -11,13 +13,10 @@ export class AppService {
     return 'Hello World!';
   }
 
-  async createProduct() {
+  async createProduct(dto: ProductCreateDto) {
     const created = await this.db.model.create({
-      name: `Product ${Date.now()}`,
-      description: 'Product description',
-      price: 10,
-      availableQuantity: 100,
-      image: null,
+      ...dto,
+      image: dto.image ?? null,
     });
 
     return created;

@@ -1,7 +1,15 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
 import { AppService } from './app.service';
+import { ProductCreateDto } from './entity/Product';
 
-@Controller()
+@Controller('product')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
@@ -10,8 +18,9 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Post('/create-product')
-  async createProduct() {
-    return await this.appService.createProduct();
+  @Post('create')
+  @HttpCode(HttpStatus.CREATED)
+  async createProduct(@Body() dto: ProductCreateDto) {
+    return await this.appService.createProduct(dto);
   }
 }
