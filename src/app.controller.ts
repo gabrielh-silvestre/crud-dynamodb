@@ -5,11 +5,15 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  UploadedFile,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+
 import { AppService } from './app.service';
-import { ProductCreateDto, ZProductCreateDto } from './entity/Product';
-import { ZodValidationPipe } from './shared/pipes/ZodValidation.pipe';
+import { ProductCreateDto } from './entity/Product';
+import { CreateProductPipe } from './shared/pipes/CreateProduct.pipe';
 
 @Controller('product')
 export class AppController {
@@ -22,8 +26,12 @@ export class AppController {
 
   @Post('create')
   @HttpCode(HttpStatus.CREATED)
-  @UsePipes(new ZodValidationPipe(ZProductCreateDto))
-  async createProduct(@Body() dto: ProductCreateDto) {
-    return await this.appService.createProduct(dto);
+  @UseInterceptors(FileInterceptor('file'))
+  @UsePipes(new CreateProductPipe())
+  async createProduct(
+    @UploadedFile('file') file: Express.Multer.File,
+    @Body() dto: ProductCreateDto,
+  ) {
+    return await this.appService.createProduct(dto, file);
   }
 }

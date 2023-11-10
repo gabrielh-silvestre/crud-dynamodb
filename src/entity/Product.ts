@@ -17,6 +17,7 @@ export type IProduct = z.infer<typeof ZProduct>;
 
 export const ZProductCreateDto = ZProduct.omit({
   id: true,
+  image: true, // Will be the S3 url
   createdAt: true,
   updatedAt: true,
 }).required();
