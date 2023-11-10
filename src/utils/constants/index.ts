@@ -6,6 +6,10 @@ export const ConstEnum = {
     TABLE: 'CrudTestCallwe',
   },
 
+  sqs: {
+    QUEUE: 'crud-test-callwe',
+  },
+
   s3: {
     BUCKET: 'crud-test-callwe',
   },

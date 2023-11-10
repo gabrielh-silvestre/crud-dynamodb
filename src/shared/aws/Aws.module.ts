@@ -3,19 +3,25 @@ import { ConfigService } from '@nestjs/config';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 import type { IDynamoDbOptions } from './dynamo/types';
+import type { ISQSOptions } from './sqs/types';
 
 import { S3Service } from './S3.service';
 import { DynamoDbService } from './dynamo/Dynamo.service';
+import { SQSService } from './sqs/SQS.service';
 
 import { ProviderEnum } from 'src/utils/constants';
 
+type FactoryFn<T> = (...args: any[]) => T;
+
 type AwsModuleOptions = {
   dynamodbOpt?: IDynamoDbOptions<any>;
+
+  sqsFactory?: FactoryFn<ISQSOptions[]>;
 };
 
 @Module({
-  providers: [S3Service, DynamoDbService],
-  exports: [S3Service, DynamoDbService],
+  providers: [S3Service, DynamoDbService, SQSService],
+  exports: [S3Service, DynamoDbService, SQSService],
 })
 export class AwsModule {
   private static dynamodbFactory(configService: ConfigService) {
@@ -60,10 +66,22 @@ export class AwsModule {
     ];
   }
 
-  static register({ dynamodbOpt }: AwsModuleOptions): DynamicModule {
+  static register({
+    dynamodbOpt,
+    sqsFactory,
+  }: AwsModuleOptions): DynamicModule {
+    const dynamodb = AwsModule.dynamodbProvider(dynamodbOpt);
+
     return {
       module: AwsModule,
-      providers: [...AwsModule.dynamodbProvider(dynamodbOpt)],
+      providers: [
+        ...dynamodb,
+        {
+          provide: ProviderEnum.sqs.OPTIONS,
+          useFactory: sqsFactory,
+          inject: [ConfigService],
+        },
+      ],
     };
   }
 }
