@@ -1,5 +1,6 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SQSHandler } from '@coaktion/evolutty';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 import type { IDynamoDbOptions } from './dynamo/types';
@@ -9,14 +10,14 @@ import { S3Service } from './S3.service';
 import { DynamoDbService } from './dynamo/Dynamo.service';
 import { SQSService } from './sqs/SQS.service';
 
-import { ProviderEnum } from '@/utils/constants';
-
-type FactoryFn<T> = (...args: any[]) => T;
+import { ConstEnum, ProviderEnum } from '@/utils/constants';
 
 type AwsModuleOptions = {
   dynamodbOpt?: IDynamoDbOptions<any>;
 
-  sqsFactory?: FactoryFn<ISQSOptions[]>;
+  sqsOpt?: {
+    handlers: (typeof SQSHandler)[];
+  };
 };
 
 @Module({
@@ -66,10 +67,37 @@ export class AwsModule {
     ];
   }
 
-  static register({
-    dynamodbOpt,
-    sqsFactory,
-  }: AwsModuleOptions): DynamicModule {
+  private static sqsFactory(handlers?: (typeof SQSHandler)[]) {
+    if (!handlers) return () => [];
+
+    const {
+      SQS_REGION,
+      SQS_ACCESS_KEY_ID,
+      SQS_SECRET_KEY,
+      SQS_ENDPOINT,
+      SQS_VISIBILITY_TIMEOUT,
+    } = ProviderEnum.env;
+
+    const handlerBuilder = (configService: ConfigService): ISQSOptions[] => {
+      return handlers.map((handler) => ({
+        handler,
+        queueName: ConstEnum.sqs.QUEUE,
+        routeParams: {
+          accessKeyId: configService.getOrThrow<string>(SQS_ACCESS_KEY_ID),
+          secretAccessKey: configService.getOrThrow<string>(SQS_SECRET_KEY),
+          region: configService.getOrThrow<string>(SQS_REGION),
+          endpoint: configService.get<string>(SQS_ENDPOINT),
+          visibilityTimeout: configService.getOrThrow<string>(
+            SQS_VISIBILITY_TIMEOUT,
+          ),
+        },
+      }));
+    };
+
+    return handlerBuilder;
+  }
+
+  static register({ dynamodbOpt, sqsOpt }: AwsModuleOptions): DynamicModule {
     const dynamodb = AwsModule.dynamodbProvider(dynamodbOpt);
 
     return {
@@ -78,7 +106,7 @@ export class AwsModule {
         ...dynamodb,
         {
           provide: ProviderEnum.sqs.OPTIONS,
-          useFactory: sqsFactory,
+          useFactory: AwsModule.sqsFactory(sqsOpt?.handlers),
           inject: [ConfigService],
         },
       ],
