@@ -1,0 +1,80 @@
+service: callwe-crud-dynamodb
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action: [
+        "dynamodb:PutItem",
+        "dynamodb:GetItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "cognito-identity:*",
+        "cognito-idp:*"
+      ]
+      Resource: [
+        "arn:aws:dynamodb:us-east-1:318318616248:table/CrudTestCallwe",
+        "arn:aws:cognito-idp:us-east-1:318318616248:userpool/us-east-1_pv2kzZopA"
+      ]
+
+resources:
+  Resources:
+    CallweCrudLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - sts:AssumeRole
+        Policies:
+          - PolicyName: LambdaExecutionPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement: 
+                - Effect: Allow
+                  Action:
+                    - "dynamodb:PutItem"
+                    - "dynamodb:GetItem"
+                    - "dynamodb:UpdateItem"
+                    - "dynamodb:DeleteItem"
+                    - "dynamodb:Query"
+                    - "dynamodb:Scan"
+                    - "cognito-identity:*"
+                    - "cognito-idp:*"
+                  Resource:
+                    - "arn:aws:dynamodb:us-east-1:318318616248:table/CrudTestCallwe"
+                    - "arn:aws:cognito-idp:us-east-1:318318616248:userpool/us-east-1_pv2kzZopA"
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: CognitoAuthorizer
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ProviderARNs:
+          - arn:aws:cognito-idp:us-east-1:318318616248:userpool/us-east-1_pv2kzZopA
+    
+functions:
+  main:
+    handler: dist/lambda.handler
+    role: CallweCrudLambdaRole
+    events:
+      - http:
+          method: ANY
+          path: '/{proxy+}'
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
