@@ -9,7 +9,7 @@ import { S3Service } from './S3.service';
 import { DynamoDbService } from './dynamo/Dynamo.service';
 import { SQSService } from './sqs/SQS.service';
 
-import { ProviderEnum } from 'src/utils/constants';
+import { ProviderEnum } from '@/utils/constants';
 
 type FactoryFn<T> = (...args: any[]) => T;
 

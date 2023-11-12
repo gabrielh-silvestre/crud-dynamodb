@@ -4,7 +4,7 @@ import { Entity, Model, OneSchema, Table } from 'dynamodb-onetable';
 
 import type { IDynamoDbOptions } from './types';
 
-import { ProviderEnum } from 'src/utils/constants';
+import { ProviderEnum } from '@/utils/constants';
 
 @Injectable()
 export class DynamoDbService<Schema extends OneSchema> {

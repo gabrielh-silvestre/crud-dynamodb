@@ -3,7 +3,7 @@ import { EvoluttyManager, RoutesType, SQSRouter } from '@coaktion/evolutty';
 
 import type { ISQSOptions } from './types';
 
-import { ProviderEnum } from 'src/utils/constants';
+import { ProviderEnum } from '@/utils/constants';
 
 @Injectable()
 export class SQSService implements OnModuleInit {

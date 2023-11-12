@@ -7,7 +7,7 @@ import {
 import { isValidationError } from 'zod-validation-error';
 
 import { ZodValidationPipe } from './ZodValidation.pipe';
-import { ZProductCreateDto } from 'src/entity/Product';
+import { ZProductCreateDto } from '@/entity/Product';
 
 @Injectable()
 export class CreateProductPipe

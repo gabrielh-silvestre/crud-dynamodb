@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client } from '@aws-sdk/client-s3';
 
-import { ProviderEnum } from 'src/utils/constants';
+import { ProviderEnum } from '@/utils/constants';
 
 @Injectable()
 export class S3Service extends S3Client {
